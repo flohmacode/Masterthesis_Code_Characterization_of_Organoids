@@ -1,9 +1,16 @@
 import numpy as np
-import src.file_utils as file_utils
 import os
-import src.spectroscopy as spectroscopy
 import pyAMARES
+import src.spectroscopy as spectroscopy
+import src.file_utils as file_utils
 import src.processing as processing
+
+
+# import sys
+# import os
+
+# # Ensure the project root (parent of this file's folder) is on sys.path
+# sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 def save_fid_for_pyamares():
 
@@ -19,7 +26,6 @@ def save_fid_for_pyamares():
             nspectlist.append(element)
     nspecdict =  dict(nspectlist)
 
-    #PROCESS NSPECT SCANS to Spectra
     freeinductiondecays = []
 
     headerlist = []
@@ -37,20 +43,13 @@ def save_fid_for_pyamares():
     np.save('./processed_data/fid_amares.npy',np.array(freeinductiondecays))
 
 
-fid_data_all = np.load('./processed_data/fid_amares.npy')
+fid_data_all = np.load('./spectroscopy/processed_data/fid_amares.npy')
 
 fid_data_all = fid_data_all.squeeze()
-print(fid_data_all.shape)
+
 fid_data = fid_data_all[0]
-#fid_data = np.roll(fid_data,235)
 
 filtered_fid= processing.linebroadening(fid_data,20)
-
-# spectrum = np.fft.fftshift(np.fft.fft(filtered_fid))
-
-# plt.plot(np.abs(spectrum))
-# plt.show()
-
 
 # 2. Scanner Parameters (Extracted from the Header)
 SWH = 7936.507936507936    # PVM_SpecSWH
@@ -58,17 +57,8 @@ MHz = 162.04150323     # PVM_FrqWork
 # PVM DeadTime is 0.05ms -> Convert to seconds for pyAMARES
 dead_time_s = 0.05 * 1e-3 
 
-# spectrum = np.fft.fftshift(np.fft.fft(fid_data))
-# ppm_axis = np.linspace(SWH/2, -SWH/2, len(fid_data)) / MHz
-
-# plt.plot(ppm_axis, np.abs(spectrum))
-# plt.xlim(-25, 25)
-# plt.xlabel('ppm')
-# plt.show()
-
 #SHIFTING
-# 1. Find the current PPM of your strongest peak (e.g., Pi or PCr)
-current_peak_ppm = -4  # Let's say your Pi is sitting at 5.2 but should be 4.8
+current_peak_ppm = -4  
 shift_needed = -10 - current_peak_ppm
 
 # 2. Apply a frequency shift to the FID
@@ -83,7 +73,7 @@ FIDobj = pyAMARES.initialize_FID(
     sw=SWH,
     deadtime=dead_time_s,
     normalize_fid=False,
-    priorknowledgefile="./pknowledge_normal.csv",
+    priorknowledgefile="./spectroscopy/pknowledge_normal.csv",
     preview=False,
     xlim=(25,-25),
     #delta_phase=4

@@ -7,11 +7,12 @@ import src.spectroscopy as spectroscopy
 import src.processing as processing
 import seaborn as sns
 
+'''Plots the minimum amount experiment'''
+
 name_bimsb = 'minimum_amount'
-study_directory =  f"./data/{name_bimsb}"
+study_directory =  f"./spectroscopy/data/{name_bimsb}"
 
 file_utils.read_bruker_study(study_directory)
-
 
 #LOAD Only NSPECT SCANS
 studylist = file_utils.read_bruker_study(study_directory)
@@ -30,25 +31,16 @@ scantime = []
 
 for i in nspectlist:
     idx,scan = i
-
     if os.path.isfile(os.path.join(study_directory, str(idx), 'pdata', '1', 'fid_proc.64')):
-
         fids, spects, ppm_axis, header = spectroscopy.read_NSPECT(study_directory,idx) 
-        
-        #filtered_fid= processing.modLineBroadening(fids,80)
         filtered_fid= processing.linebroadening(fids,20)
-
         spects = np.fft.fftshift(np.fft.fft(filtered_fid, axis=0), axes=0)
-
         specls.append(spects)
         expidxls.append(idx)
-
         scantimeduration.append(processing.scanduration(header))
         scantime.append(processing.date_of_scan(header))
     else:
         missing_data.append(idx)
-
-
 
 # SORT ALL DATA BY SCANTIME
 idx = np.argsort(scantime)
@@ -56,7 +48,7 @@ expidx_arr = np.array(expidxls)[idx]
 scantime_arr = np.array(scantime)[idx]
 specls_arr = np.array(specls)[idx]
 
-#roll of the first two spectra since they were recorded 
+# roll of the first two spectra since they were recorded 
 # with the wrong settings compared to the other scans
 if name_bimsb == 'leupold_feb':
     specls_arr[0] = np.roll(specls_arr[0],-15)
@@ -69,12 +61,8 @@ if name_bimsb == 'leupold_dec':
 # PLOT AND SAVE ALL SPECTRA
 for key,value in enumerate(specls_arr[:]):
     spec = value
-    if name_bimsb == 'minimum_amount':
-        spec = np.roll(spec,-255)
-    if name_bimsb == 'leupold_feb':
-        spec = np.roll(spec,-235)
-    if name_bimsb == 'leupold_dec':
-        spec = np.roll(spec,-235)
+    
+    spec = np.roll(spec,-235)
 
     #plt.figure(figsize=(12, 6))
     lpidx = key
@@ -98,13 +86,4 @@ for key,value in enumerate(specls_arr[:]):
     plt.grid()
     plt.tight_layout()
     plt.show()
-    #plt.savefig(f'./fig/{name_bimsb}/scan_no{key}')
-    #plt.close()
-
-# #Save the Spectra into a .npy array for further processing
-# np.save(f"./processed_data/{name_bimsb}/spectra.npy",specls_arr)
-# np.save(f"./processed_data/{name_bimsb}/ppm_axis.npy",np.array(ppm_axis))
-# np.save(f"./processed_data/{name_bimsb}/scantime.npy",scantime_arr)
-# np.save(f"./processed_data/{name_bimsb}/scantime_duration.npy",np.array(scantimeduration))
-
-
+    

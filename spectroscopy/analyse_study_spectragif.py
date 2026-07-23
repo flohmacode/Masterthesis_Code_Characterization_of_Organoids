@@ -7,12 +7,13 @@ import src.spectroscopy as spectroscopy
 import src.processing as processing
 import seaborn as sns
 
-#LOAD ALL DATA
+'''This script allows the Conversion from raw data files to Spectras'''
+
+#LOAD ALL DATA - specify file here
 name_bimsb = 'leupold_dec'
-study_directory =  f"./data/{name_bimsb}"
+study_directory =  f"./spectroscopy/data/{name_bimsb}"
 
 file_utils.read_bruker_study(study_directory)
-
 
 #LOAD Only NSPECT SCANS
 studylist = file_utils.read_bruker_study(study_directory)
@@ -21,8 +22,6 @@ for element in studylist:
     if '<Bruker:NSPECT>' in element:
         nspectlist.append(element)
 nspecdict =  dict(nspectlist)
-
-
 
 #PROCESS NSPECT SCANS to Spectra
 specls = []
@@ -57,7 +56,7 @@ expidx_arr = np.array(expidxls)[idx]
 scantime_arr = np.array(scantime)[idx]
 specls_arr = np.array(specls)[idx]
 
-#roll of the first two spectra since they were recorded 
+# roll of the first two spectra since they were recorded 
 # with the wrong settings compared to the other scans
 if name_bimsb == 'leupold_feb':
     specls_arr[0] = np.roll(specls_arr[0],-15)
@@ -98,14 +97,14 @@ for key,value in enumerate(specls_arr[:]):
     plt.title(f'31P Spectrum of 20 Organoids: Scan No. {key}')
     plt.grid()
     plt.tight_layout()
-    #plt.show()
-    plt.savefig(f'./fig/{name_bimsb}/scan_no{key}')
+    plt.show()
+    #plt.savefig(f'./spectroscopy/fig/{name_bimsb}/scan_no{key}')
     plt.close()
 
 #Save the Spectra into a .npy array for further processing
-np.save(f"./processed_data/{name_bimsb}/spectra.npy",specls_arr)
-np.save(f"./processed_data/{name_bimsb}/ppm_axis.npy",np.array(ppm_axis))
-np.save(f"./processed_data/{name_bimsb}/scantime.npy",scantime_arr)
-np.save(f"./processed_data/{name_bimsb}/scantime_duration.npy",np.array(scantimeduration))
+# np.save(f"./spectroscopy/processed_data/{name_bimsb}/spectra.npy",specls_arr)
+# np.save(f"./spectroscopy/processed_data/{name_bimsb}/ppm_axis.npy",np.array(ppm_axis))
+# np.save(f"./spectroscopy/processed_data/{name_bimsb}/scantime.npy",scantime_arr)
+# np.save(f"./spectroscopy/processed_data/{name_bimsb}/scantime_duration.npy",np.array(scantimeduration))
 
 
