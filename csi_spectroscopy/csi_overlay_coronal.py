@@ -6,24 +6,22 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import numpy as np
-import spectroscopy.src.file_utils as file_utils
-import spectroscopy.src.processing as processing
-import spectroscopy.src.csiplots2stable as csiplots
+import csi_spectroscopy.src.file_utils as file_utils
+import csi_spectroscopy.src.processing as processing
+import csi_spectroscopy.src.csiplots2stable as csiplots
 import matplotlib.pyplot as plt
-import spectroscopy.src.mr_imaging as mr_imaging
+import csi_spectroscopy.src.mr_imaging as mr_imaging
+
 study_directory = './csi_data/atpspec/20260107_145049_MDC_0230_fm_organoids_260107_organoid_atp_spec2_1_15'
-#study_directory = './data/exp/20251103_113501_MDC_0219_Graz__sw250930_phan_slice50mlH3PO4_4_1_12'
 file_utils.read_bruker_study(study_directory)
 
 experimentindice = [16,17,18]
 #experimentindice = [94,96]
 
-#check for phaseshift
 experiments = []
 spatial = None
 ppm_axis = None
 p = (12,10,10,2048)
-
 
 #We load and filter the experiments described in experimentindice.
 for i in experimentindice:

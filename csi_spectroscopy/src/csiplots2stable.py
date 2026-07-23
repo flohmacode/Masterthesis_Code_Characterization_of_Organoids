@@ -1,6 +1,3 @@
-
-import numpy as np
-import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
@@ -74,14 +71,13 @@ def plot_csi_spec_axial(spects, idxtoslice, spatial):
     for y in range(len(y_axis)):
         for x in range(len(x_axis)):
         
-
             newslice[0]= idxtoslice
             newslice[1]= x
             newslice[2]= y
             newslice[3]= slice(None)
 
             spe = np.abs(spects [tuple(newslice)])
-            spe = np.roll(spe,0)
+            spe = np.roll(spe,-235) # here we could roll spectra by desired amount
 
             y_maxnew = np.max(np.abs(spects [tuple(newslice)]))
 
@@ -89,10 +85,6 @@ def plot_csi_spec_axial(spects, idxtoslice, spatial):
                 y_max = y_maxnew
 
             ax[y,x].plot(ppm_axis,spe,linewidth  = 0.7)
-            #ax[x,y].axvline(x= 3,linestyle = ':',color = 'red')#waterpeak
-            # ax[x,y].axvline(x=-2.48, color='red', linestyle='--', label='γ-ATP (theoretical)')
-            # ax[x,y].axvline(x=-7.52, color='green', linestyle='--', label='α-ATP (theoretical)')
-            # ax[x,y].axvline(x=-16.26, color='purple', linestyle='--', label='β-ATP (theoretical)')
             ax[y,x].set_xticklabels([])
             ax[y,x].set_yticklabels([])
             ax[y,x].set_xlim(25,-25)
@@ -102,9 +94,7 @@ def plot_csi_spec_axial(spects, idxtoslice, spatial):
     for ax_obj in ax.flat:
         ax_obj.set_ylim(0, y_max)
     
-    return fig,ax#, np.abs(spects [tuple(newslice)])
-
-
+    return fig,ax
 
 def plot_csi_spec_coronal(spects, idxtoslice, spatial):
     """
@@ -158,12 +148,8 @@ def plot_csi_spec_coronal(spects, idxtoslice, spatial):
       spectral intensity across the entire slice.
     """
     
-    x_axis, y_axis, z_axis = spatial['x'], spatial['y'], spatial['z'] 
-    # 1. Extract axes from spatial dictionary
-    
+    x_axis, y_axis, z_axis = spatial['x'], spatial['y'], spatial['z']     
     ppm_axis = spatial['ppm']
-
-
 
     fig,ax = plt.subplots(len(z_axis),len(x_axis))
     
@@ -206,9 +192,7 @@ def plot_csi_spec_coronal(spects, idxtoslice, spatial):
     for ax_obj in ax.flat:
         ax_obj.set_ylim(0, y_max)
     
-    return fig,ax#, np.abs(spects [tuple(newslice)])
-
-
+    return fig,ax
 
 def plot_csi_spec_sagital(spects, idxtoslice, spatial):
     """
@@ -311,10 +295,7 @@ def plot_csi_spec_sagital(spects, idxtoslice, spatial):
     for ax_obj in ax.flat:
         ax_obj.set_ylim(0, y_max)
     
-    return fig,ax#, np.abs(spects [tuple(newslice)])
-
-
-
+    return fig,ax
 
 #HEATMAPS START HERE
 
@@ -383,7 +364,6 @@ def plot_csi_heatmap_axial(spects, idxtoslice, spatial):
     return fig,ax
     
 
-
 def plot_csi_heatmap_coronal(spects,  idxtoslice, spatial):
     """
     Plot a coronal heatmap of maximum CSI spectral intensity for a given slice.
@@ -449,8 +429,6 @@ def plot_csi_heatmap_coronal(spects,  idxtoslice, spatial):
     
     return fig,ax
 
-
-
 def plot_csi_heatmap_sagital(spects, idxtoslice, spatial):
     """
     Plot a sagittal heatmap of maximum CSI spectral intensity for a given slice.
@@ -512,7 +490,6 @@ def plot_csi_heatmap_sagital(spects, idxtoslice, spatial):
     plt.imshow(img,vmin=25000, vmax=600000,cmap='hot')
     
     return fig,ax
-
 
 # Overlay 
 
@@ -632,7 +609,7 @@ def compute_alignment2(fov_spec, fov_img, offset_y, offset_x, nx, ny):
     # We shift the boundaries by half the width of one voxel (in normalized units)
     half_vox_x = (voxel_size_x / f_img_x) / 2
     half_vox_y = (voxel_size_y / f_img_y) / 2
-    print(half_vox_y)
+
     # 1. Calculate the normalized height of one FULL voxel
     # (Voxel height / Total Image Height)
     full_vox_y = (f_spec_y / ny) / f_img_y
@@ -796,8 +773,6 @@ def csi_overlay_axial(spects, img_array,idxtoslice, spatial,  fov_img ,fov_spec 
             
             ax_objects[y, x] = ax
 
-    #fig.suptitle(title) 
-    
     return fig, ax_objects
 
 
@@ -936,7 +911,7 @@ def csi_overlay_coronal(spects, img_array, idxtoslice, spatial, fov_img, fov_spe
 
 
 
-def csi_overlay_sagital(spects, img_array, idxtoslice, spatial, fov_img, fov_spec, offset,figsize, title):
+def csi_overlay_sagittal(spects, img_array, idxtoslice, spatial, fov_img, fov_spec, offset,figsize, title):
     """
     Overlay sagittal CSI spectra on a 2D anatomical image using GridSpec alignment.
 
@@ -1051,8 +1026,6 @@ def csi_overlay_sagital(spects, img_array, idxtoslice, spatial, fov_img, fov_spe
             # ax[x,y].axvline(x=-2.48, color='red', linestyle='--', label='γ-ATP (theoretical)')
             # ax[x,y].axvline(x=-7.52, color='green', linestyle='--', label='α-ATP (theoretical)')
             # ax[x,y].axvline(x=-16.26, color='purple', linestyle='--', label='β-ATP (theoretical)')
-            #plt.axvline(x=3, color='red', linestyle='--'
-            #plt.axvline(x=3, color='red', linestyle='--'
             
             
             ax.set_xticklabels([])

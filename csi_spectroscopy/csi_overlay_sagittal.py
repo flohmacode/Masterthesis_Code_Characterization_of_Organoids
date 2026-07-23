@@ -12,13 +12,11 @@ import matplotlib.pyplot as plt
 import csi_spectroscopy.src.mr_imaging as mr_imaging
 
 study_directory = './csi_data/atpspec/20260107_145049_MDC_0230_fm_organoids_260107_organoid_atp_spec2_1_15'
-#study_directory = './data/exp/20251103_113501_MDC_0219_Graz__sw250930_phan_slice50mlH3PO4_4_1_12'
 file_utils.read_bruker_study(study_directory)
 
 experimentindice = [16,17,18]
 #experimentindice = [94,96]
 
-#check for phaseshift
 experiments = []
 spatial = None
 ppm_axis = None
@@ -56,7 +54,7 @@ offset = header_spec['ACQ_slice_offset']
 
 slice_idx_scan = -6
 
-fig, ax = csiplots.csi_overlay_sagital(
+fig, ax = csiplots.csi_overlay_sagittal(
     spects=spects,
     img_array=img_mat,
     idxtoslice=slice_idx_scan,

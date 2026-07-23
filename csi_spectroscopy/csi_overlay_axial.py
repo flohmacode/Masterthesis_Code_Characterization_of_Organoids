@@ -11,8 +11,8 @@ import csi_spectroscopy.src.processing as processing
 import csi_spectroscopy.src.csiplots2stable as csiplots
 import matplotlib.pyplot as plt
 import csi_spectroscopy.src.mr_imaging as mr_imaging
-study_directory = './csi_data/atpspec/20260107_145049_MDC_0230_fm_organoids_260107_organoid_atp_spec2_1_15'
 
+study_directory = './csi_data/atpspec/20260107_145049_MDC_0230_fm_organoids_260107_organoid_atp_spec2_1_15'
 file_utils.read_bruker_study(study_directory)
 
 experimentindice = [16,17,18]
@@ -22,7 +22,6 @@ experiments = []
 spatial = None
 ppm_axis = None
 p = (12,10,10,2048)
-
 
 #We load and filter the experiments described in experimentindice.
 for i in experimentindice:
