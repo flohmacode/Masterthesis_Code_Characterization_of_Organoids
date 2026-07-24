@@ -3,9 +3,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-
 '''This Script compares posterior distributions of two Experiments'''
-
 
 def load_to_dataframe(npy_path):
     """Loads the .npy file containing an array of dictionaries and converts it to a pandas DataFrame."""
@@ -57,13 +55,6 @@ rows = (num_params + cols - 1) // cols
 
 fig, axes = plt.subplots(rows, cols, figsize=(cols * 4.5, rows * 3.5))
 axes = axes.flatten()  # Flatten to iterate easily
-
-# my_colors = {
-# 'blueblue':    '#003366',  # Deep Navy (Primary, highly professional)
-# 'redred':      "#F8720C",  # Burnt Orange / Ochre (Excellent contrast against navy)
-# 'greengreen':  "#1B9E5A",  # Deep Teal (Distinct, colorblind-friendly accent)
-# 'orange':      '#4B0082'   # Deep Indigo / Violet (Dark, distinct from navy and black)
-# }
 
 my_colors = {
     "3. Experiment": "#0C68C4",   # Deep Navy

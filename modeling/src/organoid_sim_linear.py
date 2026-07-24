@@ -4,6 +4,41 @@ import src.connection_to_bio as ctb
 import src.helper as helper
 
 def organoid_sim_spec_params_linear(steps,dt,Volume_L,params):
+    """
+    Simulates the biological dynamics of organoids over time using a linear model.
+    Tracks ATP, glucose (M), oxygen (OXY), and waste (W) levels.
+
+    Parameters:
+    - steps (int): Number of time steps for the simulation.
+    - dt (float): Time step size (in minutes).
+    - Volume_L (float): Volume of the experimental setup (in liters).
+    - params (dict): Dictionary of simulation parameters, including:
+        - M_0 (float): Initial glucose concentration (mM).
+        - OXY_0 (float): Initial oxygen concentration (mM).
+        - ORGANOID_VOLUME (float): Volume of the organoid (m³).
+        - CELLDENSITY (float): Cell density (cells/m³).
+        - myu_glucose (float): Glucose consumption rate (mol/cell*s).
+        - myu_oxygen (float): Oxygen consumption rate (mol/cell*s).
+        - myu_waste_yield (float): Waste production yield.
+        - k_m_m (float): Michaelis-Menten constant for glucose.
+        - k_m_o (float): Michaelis-Menten constant for oxygen.
+        - k_m_i (float): Inhibition constant for waste.
+        - k_m_a (float): Inhibition constant for ATP.
+        - yield_aerobic (float): Aerobic yield coefficient.
+        - myu_fixed_costs (float): Fixed costs for ATP production.
+
+    Returns:
+    - tuple: (ATP_p, M, OXY, W)
+      - ATP_p (numpy.ndarray): ATP levels over time.
+      - M (numpy.ndarray): Glucose levels over time.
+      - OXY (numpy.ndarray): Oxygen levels over time.
+      - W (numpy.ndarray): Waste levels over time.
+
+    Notes:
+    - Uses Michaelis-Menten kinetics for glucose and oxygen consumption.
+    - Includes inhibition terms for waste and ATP.
+    - All values are clamped to non-negative values.
+    """
     M_0 = params['M_0']
     OXY_0 = params['OXY_0']
     ORGANOID_VOLUME= params['ORGANOID_VOLUME']
@@ -82,6 +117,28 @@ def organoid_sim_spec_params_linear(steps,dt,Volume_L,params):
     return ATP_p,M,OXY,W
 
 def run_bayes_linear(steps,dt,Volume_L):
+    """
+    Runs a Bayesian parameter sampling simulation for organoid dynamics.
+    Uses prior distributions for uncertain parameters and simulates the system.
+
+    Parameters:
+    - steps (int): Number of time steps for the simulation.
+    - dt (float): Time step size (in minutes).
+    - Volume_L (float): Volume of the experimental setup (in liters).
+
+    Returns:
+    - tuple: (ATP_p, M, OXY, W, params)
+      - ATP_p (numpy.ndarray): ATP levels over time.
+      - M (numpy.ndarray): Glucose levels over time.
+      - OXY (numpy.ndarray): Oxygen levels over time.
+      - W (numpy.ndarray): Waste levels over time.
+      - params (dict): Dictionary of sampled parameters used in the simulation.
+
+    Notes:
+    - Uses `ctb.bayes_prior()` to sample parameters from prior distributions.
+    - Fixed parameters (e.g., M_0, OXY_0) are set to measurable values.
+    - Uncertain parameters (e.g., myu_oxygen, k_m_i) are sampled from their priors.
+    """
 
     p = ctb.bayes_prior()
 
@@ -90,7 +147,7 @@ def run_bayes_linear(steps,dt,Volume_L):
     ORGANOID_VOLUME = 4/3 * np.pi* (3/2)**3 *1e-9 *22   #fixed bc measureable
     CELLDENSITY = 4.82e11                               #fixed bc measureable
     myu_glucose = 2.0e-16 # mol/cell*s                  #fixed bc literature
-    myu_oxygen = p["myu_oxygen"].rvs()                 #fixed bc literature, showed as example for uninformative prior
+    myu_oxygen = p["myu_oxygen"].rvs()                  #fixed bc literature, showed as example for uninformative prior
     myu_waste_yield = p["myu_waste_yield"].rvs()
     k_m_m = 0.2                                         #fixed bc im always saturated this shouldnt be important as i dont enter this regime
     k_m_o = 0.2                                         #fixed bc im always saturated this shouldnt be important as i dont enter this regime
@@ -131,7 +188,7 @@ def run_bayes_linear(steps,dt,Volume_L):
     # we multiply the baserates by 60 to convert into minutes
     # we scale them by the amount of volume since in the simulation the should represent the effect on the concentration 
     # this effect will be smaller if volume is big
-    #myu_m = base_myu_m*60 / Volume_ml *1e-3
+    # myu_m = base_myu_m*60 / Volume_ml *1e-3
     myu_m = myu_glucose *CELLDENSITY* (X[0] / Volume_L) * 60 #*60 to convert to minutes
     myu_o = myu_oxygen *CELLDENSITY* (X[0] / Volume_L) * 60
     myu_w = myu_waste_yield*myu_m
@@ -145,9 +202,7 @@ def run_bayes_linear(steps,dt,Volume_L):
 
     #random_constants
     yield_aerobic = yield_aerobic
-
     myu_fixed_cost = myu_fixed_costs
-
 
     def inhibition(w, Ki=k_m_i):
         return (w) / (Ki + w)
@@ -165,9 +220,9 @@ def run_bayes_linear(steps,dt,Volume_L):
 
         dATP_p =  prod-cost
         
-        dW =  myu_w   *aerobic
-        dM =  -myu_m  *aerobic
-        dOxy = -myu_o *aerobic
+        dW =    myu_w  * aerobic
+        dM =   -myu_m  * aerobic
+        dOxy = -myu_o  * aerobic
 
         ATP_p[t] = max(0,ATP_p[t-1] + dATP_p * dt)
         W[t] = max(0,W[t-1]+ dW*dt)
@@ -177,6 +232,19 @@ def run_bayes_linear(steps,dt,Volume_L):
     return ATP_p,M,OXY,W,params
 
 def eval_accepted_parameters(steps,dt,Volume,accepted_parameters):
+    """
+    Evaluates the simulation for a list of accepted parameter sets and returns the trajectories.
+
+    Parameters:
+    - steps (int): Number of time steps for the simulation.
+    - dt (float): Time step size (in minutes).
+    - Volume (float): Volume of the experimental setup (in liters).
+    - accepted_parameters (list): List of parameter dictionaries to evaluate.
+
+    Returns:
+    - dict: Dictionary of trajectories for ATP, glucose, oxygen, and waste.
+            Each key maps to a 2D array of shape (num_parameters, steps).
+    """
     trajectories = {'ATP_p':np.empty((len(accepted_parameters),steps)),
               'M':np.empty((len(accepted_parameters),steps)),
               'OXY':np.empty((len(accepted_parameters),steps)),
@@ -191,7 +259,29 @@ def eval_accepted_parameters(steps,dt,Volume,accepted_parameters):
     return trajectories
 
 def run_and_plot_linear(name,steps,dt,total_time,Volume,best_parameter,accepted_parameters,rmse_best_param= [9999,9999],constraint = False):
+    """
+    Runs the simulation with the best parameters and plots the results alongside accepted parameter trajectories.
 
+    Parameters:
+    - name (str): Name of the dataset (used for loading real data).
+    - steps (int): Number of time steps for the simulation.
+    - dt (float): Time step size (in minutes).
+    - total_time (float): Total simulation time (in minutes).
+    - Volume (float): Volume of the experimental setup (in liters).
+    - best_parameter (dict): Best-fit parameters for the simulation.
+    - accepted_parameters (list): List of accepted parameter dictionaries.
+    - rmse_best_param (list, optional): RMSE values for ATP and waste fits. Defaults to [9999, 9999].
+    - constraint (bool, optional): If True, adds a constraint point to the oxygen plot. Defaults to False.
+
+    Returns:
+    - None: Displays a 2x2 subplot of ATP, oxygen, glucose, and waste dynamics.
+
+    Notes:
+    - Plots include:
+        - Best-fit trajectory.
+        - Mean and 95% Highest Density Interval (HDI) bands for accepted parameters.
+        - Real data points (if available).
+    """
     rmse_best_param0 = rmse_best_param[0]
     rmse_best_param1 = rmse_best_param[1]
 
@@ -199,19 +289,11 @@ def run_and_plot_linear(name,steps,dt,total_time,Volume,best_parameter,accepted_
 
     trajectories = eval_accepted_parameters(steps,dt,Volume,accepted_parameters)
 
-    ATP_p_mean = np.mean(trajectories['ATP_p'],axis=0)
-    M_mean = np.mean(trajectories['M'],axis=0)
-    OXY_mean = np.mean(trajectories['OXY'],axis=0)
-    W_mean = np.mean(trajectories['W'],axis=0)
-
-
-
     #FOR HDI Bands
     ATP_p_low,ATP_p_high = np.percentile(trajectories['ATP_p'], [5, 95], axis=0)
     M_low,M_high = np.percentile(trajectories['M'], [5, 95], axis=0)
     OXY_low,OXY_high = np.percentile(trajectories['OXY'], [5, 95], axis=0)
     W_low,W_high = np.percentile(trajectories['W'], [5, 95], axis=0)
-    print('trajectories',trajectories['M'])
 
     time_exp,normed_datapoints= helper.get_real_data(name)
 
@@ -221,7 +303,6 @@ def run_and_plot_linear(name,steps,dt,total_time,Volume,best_parameter,accepted_
         normed_datapoints = normed_datapoints[0:39]
 
     print('sim_rmse',helper.sim_rmse(ATP_p,normed_datapoints,time_exp))
-
 
     my_colors = {
     'blueblue':    '#003366',  # Deep Navy (Primary, highly professional)
@@ -237,11 +318,8 @@ def run_and_plot_linear(name,steps,dt,total_time,Volume,best_parameter,accepted_
 
     # 1. ATP Plot (The MRS Peak Scale)
     axs[0, 0].plot(time_axis, ATP_p, color=my_colors["greengreen"], label=f"ATP (Best fit-RMSE: {rmse_best_param0:.2f})")
-    #axs[0, 0].plot(time_axis, ATP_p_mean, color=my_colors["greengreen"], label="ATP mean")
     axs[0, 0].fill_between(time_axis, ATP_p_low,ATP_p_high,alpha = 0.4,label = 'ATP HDI Band',color = my_colors["greengreen"])
     axs[0, 0].scatter(time_exp,normed_datapoints,label = 'Recorded ATP Data',color = my_colors['redred'])
-    # If you want to overlay the real data:
-    #axs[0, 0].scatter(timeaxis_exp, datapoints, color="darkgreen", s=10, label="Real MRS Data")
     axs[0, 0].set_ylabel("Peak Height (Unitless)")
     axs[0, 0].set_title("ATP Levels")
     axs[0, 0].legend()
@@ -258,7 +336,6 @@ def run_and_plot_linear(name,steps,dt,total_time,Volume,best_parameter,accepted_
     axs[0, 1].grid(True)
     axs[0, 1].legend()
     axs[0, 1].set_ylim(0,0.25)
-
 
     # 3. Medium/Nutrients Plot
     axs[1, 0].plot(time_axis, M, color=my_colors["orange"], linestyle='--', linewidth=2, label="Medium (Best fit)")

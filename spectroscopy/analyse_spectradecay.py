@@ -36,9 +36,8 @@ metabolites = {
 sns.set_theme(style="ticks", font="sans-serif", context="paper")
 sns.set_palette(list(my_colors.values()))
 
-# 3. RUN TRACKING
-all_peak_data = [] # We'll store results here
 
+all_peak_data = []
 print("Starting tracking and generating debug plots...")
 results_list = []
 

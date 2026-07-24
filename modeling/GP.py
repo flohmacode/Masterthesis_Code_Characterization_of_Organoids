@@ -5,7 +5,7 @@ import src.helper as helper
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, WhiteKernel
 
-import models.organoid_sim_linear as mosl
+import modeling.src.organoid_sim_linear as mosl
 
 # Simulation Params
 dt = 1 # min
@@ -101,6 +101,7 @@ fig, axes = plt.subplots(2, 2, figsize=(10, 6),squeeze=False)
 # =====================================================================
 # Predict full timeline for both GPs
 # =====================================================================
+
 mean_leupold, std_leupold = gp_leupold.predict(time_sim_2d, return_std=True)
 mean_jojo, std_jojo = gp_jojo.predict(time_sim_2d, return_std=True)
 
@@ -119,7 +120,7 @@ my_colors = {
 }
 
 # =====================================================================
-# Top Left: Leupold model + GP discrepancy vs Leupold data
+# Top Left: Experiment 2 model + GP discrepancy vs Leupold data
 # =====================================================================
 ax = axes[0, 0]
 ax.plot(time_sim_1d, atp_model_leupold, 'r--', alpha=0.6, label='Mechanistic Model 2. Experiment')
@@ -138,7 +139,7 @@ ax.legend(fontsize=8)
 ax.grid(True, linestyle=':', alpha=0.5)
 
 # =====================================================================
-# Top Right: Jojo model + GP discrepancy vs Jojo data
+# Top Right: Experiment 3 model + GP discrepancy vs Jojo data
 # =====================================================================
 ax = axes[0, 1]
 ax.plot(time_sim_1d, atp_model_jojo, 'b--', alpha=0.6, label='Mechanistic Model 3.Experiment')

@@ -144,7 +144,7 @@ def read_bruker_readout(study_directory, scan_no,type_of_scan):
         header = read_bruker_all_headers(study_directory, scan_no)
         ls = []
         fid_file = os.path.join(study_directory,str(scan_no),"rawdata.job0")
-        
+
         with open(fid_file, 'rb') as f:
             raw_fid = np.fromfile(f, dtype=np.int32)
             ls.append(raw_fid)
@@ -259,10 +259,25 @@ def read_bruker_study(study_dir):
     return tmpheaderls
 
 def get_scan_time(header):
+    """
+    Extracts the scan duration from a Bruker header and converts it into minutes and seconds.
+
+    Parameters:
+    - header (dict): Bruker header containing the scan time information.
+                     The key 'PVM_ScanTime' must be present, representing the scan duration in milliseconds.
+
+    Returns:
+    - tuple: (minutes, seconds)
+      - minutes (int): The total number of full minutes in the scan duration.
+      - seconds (int): The remaining seconds after extracting full minutes.
+
+    Notes:
+    - The scan time is converted from milliseconds to seconds, then split into minutes and seconds.
+    - Uses `divmod` to compute both the quotient (minutes) and remainder (seconds) in one step.
+    """
     scantime_ms = header['PVM_ScanTime']
 
     total_seconds = scantime_ms / 1000
-
     # 2. Calculate minutes and remaining seconds
     minutes, seconds = divmod(total_seconds, 60)
     return minutes,seconds

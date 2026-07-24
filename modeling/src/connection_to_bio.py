@@ -1,7 +1,46 @@
 import numpy as np
 import scipy.stats as stats
 
-def simulation_sensitivity_organoids(steps,dt,Volume_L,params):#
+def simulation_sensitivity_organoids(steps,dt,Volume_L,params):
+    """
+    Simulates the biological dynamics of organoids over time with sensitivity analysis in mind.
+    Tracks ATP, glucose (M), oxygen (OXY), and waste (W) levels based on provided parameters.
+
+    Parameters:
+    - steps (int): Number of time steps for the simulation.
+    - dt (float): Time step size (in minutes).
+    - Volume_L (float): Volume of the experimental setup (in liters).
+    - params (list): List of parameters for the simulation. The parameters are:
+        - M_0 (float): Initial glucose concentration (mM).
+        - OXY_0 (float): Initial oxygen concentration (mM).
+        - ORGANOID_VOLUME (float): Volume of the organoid (m³).
+        - CELLDENSITY (float): Cell density (cells/m³).
+        - myu_glucose (float): Glucose consumption rate (mol/cell*s).
+        - myu_oxygen (float): Oxygen consumption rate (mol/cell*s).
+        - myu_waste_yield (float): Waste production yield.
+        - k_m_m (float): Michaelis-Menten constant for glucose.
+        - k_m_o (float): Michaelis-Menten constant for oxygen.
+        - k_m_i (float): Inhibition constant for waste.
+        - k_m_a (float): Inhibition constant for ATP.
+        - yield_aerobic (float, optional): Aerobic yield coefficient. If not provided, defaults to 0.6.
+        - myu_fixed_costs (float): Fixed costs for ATP production.
+
+    Returns:
+    - tuple: (ATP_p, M, OXY, W, params)
+      - ATP_p (numpy.ndarray): ATP levels over time.
+      - M (numpy.ndarray): Glucose levels over time.
+      - OXY (numpy.ndarray): Oxygen levels over time.
+      - W (numpy.ndarray): Waste levels over time.
+      - params (list): Input parameters used for the simulation.
+
+    Notes:
+    - Uses Michaelis-Menten kinetics for glucose and oxygen consumption.
+    - Includes inhibition terms for waste and ATP.
+    - All values are clamped to non-negative values.
+    - Handles two analysis cases:
+        1. `yield_aerobic` and `myu_fixed_costs` are free/sampled parameters (13 parameters).
+        2. `yield_aerobic` is fixed to the ABC posterior mean (0.6), and `myu_fixed_costs` is a free parameter (12 parameters).
+    """
 
     M_0             = params[0]
     OXY_0           = params[1]
@@ -88,12 +127,27 @@ def simulation_sensitivity_organoids(steps,dt,Volume_L,params):#
 
 
 def bayes_prior():
-    #medium
-    #Paper says medium has concentrations from 5-20mM
+    """
+    Defines Bayesian prior distributions for the parameters used in the organoid simulation.
+    These priors represent the initial beliefs about the parameter values before observing any data.
+
+    Returns:
+    - dict: A dictionary where keys are parameter names and values are `scipy.stats` distribution objects.
+
+    Notes:
+    - Each parameter is assigned a prior distribution based on literature values or reasonable assumptions.
+    - The distributions include:
+        - Normal distributions for parameters like glucose concentration, oxygen concentration, and cell density.
+        - Uniform distributions for parameters like waste yield.
+        - Truncated normal distributions for inhibition constants to ensure non-negative values.
+    """
+
+    # Mediumconcentraion
     medium_d = stats.norm(loc= 12.5,scale = 3)
 
-    #oxygenconcentration of 0.20-0.22mM
+    #Oxygenconcentration of 0.20-0.22mM
     oxygen_d = stats.norm(loc = 0.21,scale = 0.01)
+    
     #orgnaoid_volume
     volume_organoid =  4/3 * np.pi* (3/2)**3 *1e-9 # mm³ → m³
     number_of_organoids = 18
@@ -103,35 +157,33 @@ def bayes_prior():
     #cell densitiy
     cell_density = 4.82e11  # cells/m^3 (example density)
     cell_density_d = stats.norm(loc = cell_density,scale = cell_density*0.15)
+
     #myu medium
     glucose_consumption = 2.0e-16 # mol/cell*s 
     myu_glucose_consumption_d = stats.norm(loc= glucose_consumption,scale = glucose_consumption*0.2)
+
     #myu oxygen
     oxygen_consumption = 7.7e-16  # mol/cell*s
     myu_oxygen_consumption_d = stats.norm(loc= oxygen_consumption,scale= oxygen_consumption*0.2)
+
     #myu_waste 
-    #myu_waste_d = stats.norm(loc= 26,scale = 10)
     myu_waste_d = stats.uniform(loc=0, scale=60)  # samples 0 to 60
-    
     #km_m
     km_m_d = stats.norm(loc= 0.2,scale= 0.02)
     #km_o
     km_o_d = stats.norm(loc= 0.2,scale = 0.02)
     #km_inhibition
     km_w_d = stats.truncnorm(0,1,loc= 0.2,scale = 0.2)
-
+    #atp selfregulation
     km_a_d = stats.truncnorm(0,1,loc= 0.2,scale = 0.2)
-
 
     #yield
     aerobic_yield = stats.norm(loc = 0.6,scale = 0.3)
-    #aerobic_yield = stats.beta(a=3, b=2)
+
     #myu_fixed_cost
     fixed_cost = 0.07
     myu_fixed_costs_d= stats.norm(loc =fixed_cost,scale = fixed_cost*0.5)
 
-
-    myu_activity_costs = stats.norm(0,0)
     return {"M_0":medium_d,
             "OXY_0":oxygen_d,
             "ORGANOID_VOLUME":total_organoid_volume,
