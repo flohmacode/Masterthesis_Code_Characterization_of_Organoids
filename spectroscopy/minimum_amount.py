@@ -61,16 +61,11 @@ if name_bimsb == 'leupold_dec':
 # PLOT AND SAVE ALL SPECTRA
 for key,value in enumerate(specls_arr[:]):
     spec = value
-    
     spec = np.roll(spec,-235)
-
-    #plt.figure(figsize=(12, 6))
     lpidx = key
     passed_time = (key + 1) * 8
-
     fig, ax = plt.subplots()
     timestamp_str = scantime[lpidx].strftime("%H:%M:%S")
-
     colorpalette = sns.color_palette("viridis")
     sns.lineplot(x=ppm_axis[:], y=np.abs(spec[:, :]).flatten())
     plt.xlabel("Chmical shift (ppm)")

@@ -1,21 +1,10 @@
-import numpy as np
-
-#this script compares the posteriors 
-
-# annoying = "['waste', 'linear', 'atp_cost']"
-# accepted_parameters_jojo =np.load('./parameters/jojo_april_'+annoying+'_accepted_parameter.npy',allow_pickle=True)
-# best_parameters_jojo =np.load('./parameters/jojo_april_'+annoying+'_best_parameter.npy',allow_pickle=True)
-
-# accepted_parameters_leupold =np.load('./parameters/leupold_feb_'+annoying+'_accepted_parameter.npy',allow_pickle=True)
-# best_parameters_leupold = np.load('./parameters/leupold_feb_'+annoying+'_best_parameter.npy',allow_pickle=True)
-
-
-# print(accepted_parameters_jojo)
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+
+
+'''This Script compares posterior distributions of two Experiments'''
 
 
 def load_to_dataframe(npy_path):

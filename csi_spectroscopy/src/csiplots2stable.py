@@ -54,11 +54,7 @@ def plot_csi_spec_axial(spects, idxtoslice, spatial):
     """
 
     x_axis, y_axis, z_axis = spatial['x'], spatial['y'], spatial['z'] 
-
-    # 1. Extract axes from spatial dictionary
     ppm_axis = spatial['ppm']
-
-
 
     fig,ax = plt.subplots(len(x_axis),len(y_axis))
     
@@ -77,7 +73,7 @@ def plot_csi_spec_axial(spects, idxtoslice, spatial):
             newslice[3]= slice(None)
 
             spe = np.abs(spects [tuple(newslice)])
-            spe = np.roll(spe,-235) # here we could roll spectra by desired amount
+            spe = np.roll(spe,-235) # here we roll spectra by desired amount
 
             y_maxnew = np.max(np.abs(spects [tuple(newslice)]))
 
@@ -157,7 +153,6 @@ def plot_csi_spec_coronal(spects, idxtoslice, spatial):
     fig.set_figwidth(5)
     
     newslice = [None,None,None,None]
-
     y_max = 0
     for x in range(len(x_axis)):
         for z in range(len(z_axis)):
@@ -176,13 +171,7 @@ def plot_csi_spec_coronal(spects, idxtoslice, spatial):
             if y_max < y_maxnew:
                 y_max = y_maxnew
 
-            #ax[x,y].plot(ppm_axis,spec2_norm_shifted,linewidth  = 0.7)
             ax[z,x].plot(ppm_axis,spe,linewidth  = 0.7)
-            # ax[x,y].axvline(x=-2.48, color='red', linestyle='--', label='γ-ATP (theoretical)')
-            # ax[x,y].axvline(x=-7.52, color='green', linestyle='--', label='α-ATP (theoretical)')
-            # ax[x,y].axvline(x=-16.26, color='purple', linestyle='--', label='β-ATP (theoretical)')
-
-            #ax[z,x].plot(ppm_axis,spe,linewidth  = 0.7)
             ax[z,x].set_xticklabels([])
             ax[z,x].set_yticklabels([])
             ax[z,x].set_xlim(25,-25)
@@ -248,14 +237,9 @@ def plot_csi_spec_sagital(spects, idxtoslice, spatial):
     """
 
     x_axis, y_axis, z_axis = spatial['x'], spatial['y'], spatial['z'] 
-
-    # 1. Extract axes from spatial dictionary
-    
     ppm_axis = spatial['ppm']
 
-
-    fig,ax = plt.subplots(len(y_axis),len(z_axis))
-    
+    fig,ax = plt.subplots(len(y_axis),len(z_axis))    
     fig.set_figheight(5)
     fig.set_figwidth(5)
     
@@ -264,7 +248,6 @@ def plot_csi_spec_sagital(spects, idxtoslice, spatial):
     y_max = 0
     for y in range(len(y_axis)):
         for z in range(len(z_axis)):
-        
 
             newslice[0]= z
             newslice[1]= idxtoslice
@@ -273,19 +256,12 @@ def plot_csi_spec_sagital(spects, idxtoslice, spatial):
 
             spe = np.abs(spects [tuple(newslice)])
             spe = np.roll(spe,-235)
-
             y_maxnew = np.max(np.abs(spects [tuple(newslice)]))
 
             if y_max < y_maxnew:
                 y_max = y_maxnew
 
-            #ax[x,y].plot(ppm_axis,spec2_norm_shifted,linewidth  = 0.7)
             ax[y,z].plot(ppm_axis,spe,linewidth  = 0.7)
-            # ax[x,y].axvline(x=-2.48, color='red', linestyle='--', label='γ-ATP (theoretical)')
-            # ax[x,y].axvline(x=-7.52, color='green', linestyle='--', label='α-ATP (theoretical)')
-            # ax[x,y].axvline(x=-16.26, color='purple', linestyle='--', label='β-ATP (theoretical)')
-
-            #ax[y,x].plot(ppm_axis,spe,linewidth  = 0.7)
             ax[y,z].set_xticklabels([])
             ax[y,z].set_yticklabels([])
             ax[y,z].set_xlim(25,-25)
@@ -296,8 +272,6 @@ def plot_csi_spec_sagital(spects, idxtoslice, spatial):
         ax_obj.set_ylim(0, y_max)
     
     return fig,ax
-
-#HEATMAPS START HERE
 
 def plot_csi_heatmap_axial(spects, idxtoslice, spatial):
     """
@@ -339,17 +313,9 @@ def plot_csi_heatmap_axial(spects, idxtoslice, spatial):
     """
     x_axis, y_axis, z_axis = spatial['x'], spatial['y'], spatial['z'] 
 
-    # 1. Extract axes from spatial dictionary
-    
-    ppm_axis = spatial['ppm']
-
     fig,ax = plt.subplots()
     fig.set_figheight(5)
     fig.set_figwidth(5)
-    
-    newslice = [None,None,None,None]
-
-    y_max = 0
 
     img = np.zeros((len(x_axis),len(y_axis)))
 
@@ -363,7 +329,6 @@ def plot_csi_heatmap_axial(spects, idxtoslice, spatial):
     
     return fig,ax
     
-
 def plot_csi_heatmap_coronal(spects,  idxtoslice, spatial):
     """
     Plot a coronal heatmap of maximum CSI spectral intensity for a given slice.
@@ -405,17 +370,9 @@ def plot_csi_heatmap_coronal(spects,  idxtoslice, spatial):
     """
     x_axis, y_axis, z_axis = spatial['x'], spatial['y'], spatial['z'] 
 
-    # 1. Extract axes from spatial dictionary
-    
-    ppm_axis = spatial['ppm']
-    
     fig,ax = plt.subplots()
     fig.set_figheight(5)
     fig.set_figwidth(5)
-    
-    newslice = [None,None,None,None]
-
-    y_max = 0
 
     img = np.zeros((len(x_axis),len(z_axis)))
 
@@ -469,17 +426,9 @@ def plot_csi_heatmap_sagital(spects, idxtoslice, spatial):
     """
     x_axis, y_axis, z_axis = spatial['x'], spatial['y'], spatial['z'] 
 
-    # 1. Extract axes from spatial dictionary
-    
-    ppm_axis = spatial['ppm']
-
     fig,ax = plt.subplots()
     fig.set_figheight(5)
     fig.set_figwidth(5)
-    
-    newslice = [None,None,None,None]
-
-    y_max = 0
 
     img = np.zeros((len(y_axis),len(z_axis)))
 
@@ -490,8 +439,6 @@ def plot_csi_heatmap_sagital(spects, idxtoslice, spatial):
     plt.imshow(img,vmin=25000, vmax=600000,cmap='hot')
     
     return fig,ax
-
-# Overlay 
 
 def compute_alignment(fov_spec, fov_img, offset_y, offset_x=0):
     """
@@ -528,7 +475,6 @@ def compute_alignment(fov_spec, fov_img, offset_y, offset_x=0):
     top = center_y + (height_ratio / 2)
 
     return left, right, bottom, top
-
 
 def compute_alignment_3d(fov_spec_3d, fov_img_2d, offsets_3d, view='axial'):
     """
@@ -693,7 +639,6 @@ def csi_overlay_axial(spects, img_array,idxtoslice, spatial,  fov_img ,fov_spec 
 
     #l_local, r_local, b_local, t_local = compute_alignment(fov_spec, fov_img, offset)
 
-
     l_local, r_local, b_local, t_local = compute_alignment2(
         fov_spec, 
         fov_img, 
@@ -721,14 +666,8 @@ def csi_overlay_axial(spects, img_array,idxtoslice, spatial,  fov_img ,fov_spec 
         hspace=0
     )
 
-
-    # Extract axes from spatial dictionary exactly as your code did
-    
-    
-    # Your original slice initialization
     newslice = [None, None, None, None]
-
-    # First pass: Get y_max using your specific slicing logic
+    # Get y_max using your specific slicing logic
     y_max = 0
     for y in range(len(y_axis)):
         for x in range(len(x_axis)):
@@ -774,7 +713,6 @@ def csi_overlay_axial(spects, img_array,idxtoslice, spatial,  fov_img ,fov_spec 
             ax_objects[y, x] = ax
 
     return fig, ax_objects
-
 
 def csi_overlay_coronal(spects, img_array, idxtoslice, spatial, fov_img, fov_spec, offset,figsize, title):
     """
@@ -866,12 +804,8 @@ def csi_overlay_coronal(spects, img_array, idxtoslice, spatial, fov_img, fov_spe
     )
 
     newslice = [None, None, None, None]
-
-    # First pass: Get global y_max for scaling
     y_max = 0
-
     ax_objects = np.empty((len(z_axis), len(y_axis)), dtype=object)
-    
     newslice = [None,None,None,None]
     for x in range(len(x_axis)):
         for z in range(len(z_axis)):
@@ -887,20 +821,11 @@ def csi_overlay_coronal(spects, img_array, idxtoslice, spatial, fov_img, fov_spe
             spe = np.roll(spe,-235)
 
             y_max = max(y_max, np.max(np.abs(spects[tuple(newslice)])))
-
-            #ax[x,y].plot(ppm_axis,spec2_norm_shifted,linewidth  = 0.7)
-            ax.plot(ppm_axis,spe,color = 'orange',linewidth  = 2)
-            #ax[x,y].axvline(x= 3,linestyle = ':',color = 'red')#waterpeak
-            # ax[x,y].axvline(x=-2.48, color='red', linestyle='--', label='γ-ATP (theoretical)')
-            # ax[x,y].axvline(x=-7.52, color='green', linestyle='--', label='α-ATP (theoretical)')
-            # ax[x,y].axvline(x=-16.26, color='purple', linestyle='--', label='β-ATP (theoretical)')
-            
+            ax.plot(ppm_axis,spe,color = 'orange',linewidth  = 2)            
             ax.set_xticklabels([])
             ax.set_yticklabels([])
             ax.set_xlim(25,-25)
-
             ax.patch.set_alpha(0) 
-            
             ax_objects[z, x] = ax
 
     #fig.suptitle(title)
@@ -908,8 +833,6 @@ def csi_overlay_coronal(spects, img_array, idxtoslice, spatial, fov_img, fov_spe
         ax.set_ylim(0, y_max)
 
     return fig, ax_objects
-
-
 
 def csi_overlay_sagittal(spects, img_array, idxtoslice, spatial, fov_img, fov_spec, offset,figsize, title):
     """
@@ -999,7 +922,7 @@ def csi_overlay_sagittal(spects, img_array, idxtoslice, spatial, fov_img, fov_sp
 
     newslice = [None, None, None, None]
 
-    # First pass: Get global y_max for scaling
+    #Get global y_max for scaling
     y_max = 0
 
     ax_objects = np.empty((len(y_axis), len(z_axis)), dtype=object)
@@ -1020,26 +943,14 @@ def csi_overlay_sagittal(spects, img_array, idxtoslice, spatial, fov_img, fov_sp
 
             y_max = max(y_max, np.max(np.abs(spects[tuple(newslice)])))
 
-            #ax[x,y].plot(ppm_axis,spec2_norm_shifted,linewidth  = 0.7)
-            ax.plot(ppm_axis,spe,color = 'orange',linewidth  = 2)
-            #ax[x,y].axvline(x= 3,linestyle = ':',color = 'red')#waterpeak
-            # ax[x,y].axvline(x=-2.48, color='red', linestyle='--', label='γ-ATP (theoretical)')
-            # ax[x,y].axvline(x=-7.52, color='green', linestyle='--', label='α-ATP (theoretical)')
-            # ax[x,y].axvline(x=-16.26, color='purple', linestyle='--', label='β-ATP (theoretical)')
-            
-            
+            ax.plot(ppm_axis,spe,color = 'orange',linewidth  = 2)            
             ax.set_xticklabels([])
             ax.set_yticklabels([])
             ax.set_xlim(25,-25)
-
             ax.patch.set_alpha(0) 
-            
             ax_objects[y, z] = ax
-
-    #fig.suptitle(title)
     
     for ax in ax_objects.flat:
         ax.set_ylim(0, y_max)
 
     return fig, ax_objects
-

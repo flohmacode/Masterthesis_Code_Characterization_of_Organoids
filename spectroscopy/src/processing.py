@@ -10,6 +10,16 @@ from scipy.signal.windows import hamming
 
 
 def linebroadening(rawdata,lb= 30):
+    """
+    Apply exponential line broadening to spectral data along the spectral (time-domain) axis.
+
+    Parameters:
+    - rawdata (numpy.ndarray): Input spectral data. Must contain an axis with size 2048.
+    - lb (float, optional): Line broadening factor. Defaults to 30.
+
+    Returns:
+    - numpy.ndarray: Filtered data with exponential line broadening applied.
+    """
     bw =  7936.5 # written in header 
     lb = lb
    # Find the spectral (time-domain) axis - the one with size 2048

@@ -4,6 +4,9 @@ import numpy as np
 import src.connection_to_bio as ctb
 import matplotlib.pyplot as plt
 
+'''This Script performs the sobol analysis'''
+
+
 plt.close()
 
 # Define your parameter ranges

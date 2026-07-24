@@ -16,9 +16,7 @@ def combine_coils(kspace):
     """
     shape = kspace.shape
     shapeidx = shape.index(2)
-
     sumofchannels = np.sum(kspace,axis= shapeidx) /2
-
     return sumofchannels 
 
 def inversefft(kspace):
@@ -29,20 +27,26 @@ def inversefft(kspace):
     - Uses scipy.fft.ifft applied along axes (0, 2) — these must match your k-space layout.
     - Returns the absolute value (magnitude) of the complex image.
     """
-    
-    shape = kspace.shape
-    
     img = sp.ifft(kspace, axes=(0,2))
-    
     recon_img = np.abs(img)
     
     return recon_img
 
 def get_header_info(studydirectory,scan_no):
-    '''function that reads the header info of number of channels, number of slices, expected number of pixels'''
+    """
+    Reads the header info of a Bruker dataset to extract:
+    - Number of encoding steps (PVM_EncSteps1)
+    - Number of slices (NSLICES)
+    - Number of coils (PVM_EncNReceivers)
 
+    Args:
+        studydirectory (str): Path to the Bruker study directory.
+        scan_no (int): Scan number to read the header from.
+
+    Returns:
+        tuple: (len_encoding, num_slice, num_coils) as integers.
+    """
     header = file_utils.read_bruker_all_headers(studydirectory, scan_no)
-
 
     len_encoding= header['PVM_EncSteps1']
     num_slice = header['NSLICES']
@@ -80,20 +84,15 @@ def get_reconstructed_img(study_directory_img,scan_img_number,slice_mri,view):
 
     pixelmatrix,slices,coils= get_header_info(study_directory_img,scan_img_number)
 
-    #[numberofpixels, slices, coils, numberofpixels]
-
     kspace = complex_data.reshape(pixelmatrix,slices,coils,pixelmatrix)
 
     k_space_sumcoil_j = combine_coils(kspace)
 
     recon = inversefft(k_space_sumcoil_j)
 
-    
     if view == 'coronal':
-        #the cornal case somehow needed to be transposed so that it made sense visually. 
-        #this might be a bug.
-        fig,ax = plt.subplots()
 
+        fig,ax = plt.subplots()
         recon= recon.transpose()
         
         ax.imshow(recon[:,slice_mri,:], cmap = 'gray',origin= 'upper')
@@ -107,8 +106,6 @@ def get_reconstructed_img(study_directory_img,scan_img_number,slice_mri,view):
     if view ==  'axial' or view == 'sagital':
     
         fig,ax = plt.subplots()
-
-        #recon= recon.transpose()
         
         ax.imshow(recon[:,slice_mri,:], cmap = 'gray',origin= 'upper')
         ax.set_title(slice_mri)
@@ -121,42 +118,30 @@ def get_reconstructed_img(study_directory_img,scan_img_number,slice_mri,view):
         raise ValueError('View not known, has to be coronal, sagital, or axial')
     
 
-# def get_full_imageplot(study_directory_img,scan_img_number,slice_mri):
-
-#     rawfid = file_utils.read_bruker_readout(study_directory_img,scan_img_number,'image')
-
-#     rawfidarr = rawfid[0]
-
-#     # If data is interleaved real/imaginary:
-#     complex_data = rawfidarr[::2] + 1j * rawfidarr[1::2]  # 98,304 complex values
-
-#     pixelmatrix,slices,coils= get_header_info(study_directory_img,scan_img_number)
-
-#     #[numberofpixels, slices, coils, numberofpixels]
-
-#     kspace = complex_data.reshape(pixelmatrix,slices,coils,pixelmatrix)
-
-#     k_space_sumcoil_j = combine_coils(kspace)
-
-#     recon = inversefft(k_space_sumcoil_j)
-
-#     plt.figure()
-#     fig,ax =plt.subplots(ncols=2)
-
-#     ax[0].imshow(np.abs(k_space_sumcoil_j[:,slice_mri,:]) , cmap = 'gray',origin= 'upper')
-#     ax[0].set_title(slice_mri)
-
-#     ax[1].imshow(recon[:,slice_mri,:], cmap = 'gray',origin= 'upper')
-#     ax[1].set_title(slice_mri)
-
-#     return fig,ax
-
 def turborareload(study_directory):
+    """
+    Load a Bruker dataset using the `brukerapi` library.
+
+    Args:
+        study_directory (str): Path to the Bruker study directory.
+
+    Returns:
+        brukerapi.dataset.Dataset: Loaded dataset object.
+    """
     return Dataset(study_directory)
 
+def plot_turborare_dataset(dataset, idx=3):
+    """
+    Plot a slice from a loaded Bruker dataset.
 
-def plot_turborare_dataset(dataset,idx = 3):
-    plt.imshow(dataset.data[:,:,idx],cmap='gray')
+    Args:
+        dataset (brukerapi.dataset.Dataset): Loaded dataset object.
+        idx (int, optional): Index of the slice to plot. Defaults to 3.
+
+    Displays:
+        A grayscale image of the specified slice with no axis ticks or labels.
+    """
+    plt.imshow(dataset.data[:, :, idx], cmap='gray')
     plt.xticks([])
     plt.yticks([])
     plt.title('Organoids in NMR Tubes')

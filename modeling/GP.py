@@ -7,9 +7,7 @@ from sklearn.gaussian_process.kernels import RBF, WhiteKernel
 
 import models.organoid_sim_linear as mosl
 
-# =====================================================================
-# 1. SETUP & SIMULATION AXIS
-# =====================================================================
+# Simulation Params
 dt = 1 # min
 total_time = 700 # min
 steps = int(total_time / dt)
@@ -18,7 +16,6 @@ time_sim_1d = np.arange(steps)
 time_sim_2d = time_sim_1d[:, None]
 
 # Load parameters (Assumes your loading/conversion block from earlier ran here)
-
 name = 'jojo_april'
 
 # 1. Load the numpy arrays
@@ -29,13 +26,6 @@ best_parameters_jojo_arr = np.load('./parameters/jojo_april_linear_best_paramete
 # 2. Convert them back to Dict and List of Dicts
 best_parameters_jojo = best_parameters_jojo_arr.item()          # Becomes a dict
 accepted_parameters_jojo = accepted_parameters_jojo_arr.tolist()  # Becomes a list of dicts
-
-
-
-# Now your prints and simulation calls will work perfectly
-print(type(best_parameters_jojo))  # Should output: <class 'dict'>
-
-#mosl.run_and_plot_linear(name,steps,dt,total_time,Volume,best_parameters_jojo,accepted_parameters_jojo)
 
 name = 'leupold_feb'
 
@@ -56,8 +46,7 @@ time_exp_leupold, normed_datapoints_leupold = helper.get_real_data('leupold_feb'
 time_ip_jojo,ip_normed_jojo = helper.get_inorganic_phosphate('jojo_april')
 time_ip_leupold,ip_normed_leupold = helper.get_inorganic_phosphate('leupold_feb')
 
-
-# Flatten experimental data vectors just in case
+# Flatten experimental data vectors just 
 normed_datapoints_jojo = normed_datapoints_jojo.squeeze()
 normed_datapoints_leupold = normed_datapoints_leupold.squeeze()
 
@@ -65,23 +54,22 @@ ip_normed_jojo = ip_normed_jojo.squeeze()
 ip_normed_leupold = ip_normed_leupold.squeeze()
 
 # Experiment 2: Leupold
-#ATP
+#ATP Residual
 leupold_at_obs = np.interp(time_exp_leupold, time_sim_1d, atp_model_leupold)
 res_leupold = normed_datapoints_leupold - leupold_at_obs
 
-#IP
+#IP Residual
 ip_leupold_at_obs = np.interp(time_ip_leupold,time_sim_1d,ip_model_leupold)
 res_ip_leupold_at_obs = ip_normed_leupold - ip_leupold_at_obs
 
 # Experiment 3: JOJO
-#
+#ATP residual
 jojo_at_obs = np.interp(time_exp_jojo, time_sim_1d, atp_model_jojo)
 res_jojo = normed_datapoints_jojo - jojo_at_obs
 
-#IP
+#IP Residual
 ip_jojo_at_obs = np.interp(time_ip_jojo,time_sim_1d,ip_model_jojo)
 res_ip_jojo_at_obs = ip_normed_jojo - ip_jojo_at_obs
-
 
 print('var',(0.5*(np.var(res_jojo)+np.var(res_leupold))))
 
@@ -90,17 +78,14 @@ print('var',(0.5*(np.var(res_jojo)+np.var(res_leupold))))
 kernel = RBF(length_scale=135, length_scale_bounds="fixed") \
      + WhiteKernel(noise_level=0.5*(np.var(res_jojo)+np.var(res_leupold)), noise_level_bounds="fixed")
 
-
 gp_leupold = GaussianProcessRegressor(kernel=kernel, normalize_y=False, n_restarts_optimizer=20)
 gp_leupold.fit(time_exp_leupold.reshape(-1,1), res_leupold)
 
 gp_jojo = GaussianProcessRegressor(kernel=kernel, normalize_y=False, n_restarts_optimizer=20)
 gp_jojo.fit(time_exp_jojo.reshape(-1,1), res_jojo)
 
-
 kernel_ip = RBF(length_scale=135, length_scale_bounds="fixed") \
      + WhiteKernel(noise_level=0.5*(np.var(res_ip_leupold_at_obs)+np.var(res_ip_jojo_at_obs)), noise_level_bounds="fixed")
-
 
 gp_leupold_ip = GaussianProcessRegressor(kernel=kernel_ip, normalize_y=False, n_restarts_optimizer=20)
 gp_leupold_ip.fit(time_exp_leupold.reshape(-1,1), res_ip_leupold_at_obs)
@@ -112,7 +97,6 @@ print("Leupold discrepancy kernel: ", gp_leupold.kernel_)
 print("Jojo discrepancy kernel: ", gp_jojo.kernel_)
 
 fig, axes = plt.subplots(2, 2, figsize=(10, 6),squeeze=False)
-
 
 # =====================================================================
 # Predict full timeline for both GPs

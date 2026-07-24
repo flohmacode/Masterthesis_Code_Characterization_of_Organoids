@@ -4,14 +4,27 @@ import csi_spectroscopy.src.processing as processing
 import os
 import matplotlib.pyplot as plt
 import seaborn as sns
-
+from datetime import datetime
 from scipy.signal.windows import hamming
 
-
 def linebroadening(rawdata,lb= 30):
+    """
+    Applies exponential line broadening to spectral data along the spectral (time-domain) axis.
+
+    Parameters:
+    - rawdata (numpy.ndarray): Input spectral data. Must contain an axis with size 2048.
+    - lb (float, optional): Line broadening factor. Defaults to 30.
+
+    Returns:
+    - numpy.ndarray: Filtered data with exponential line broadening applied.
+
+    Notes:
+    - The spectral axis is dynamically identified as the axis with size 2048.
+    - The exponential window is created and reshaped for broadcasting.
+    """
     bw =  7936.5 # written in header 
     lb = lb
-   # Find the spectral (time-domain) axis - the one with size 2048
+    # Find the spectral (time-domain) axis - the one with size 2048
     spec_axis = None
     for axis, size in enumerate(rawdata.shape):
         if size == 2048:
@@ -26,17 +39,14 @@ def linebroadening(rawdata,lb= 30):
     
     # Create 1D exponential window
     apod_window_1d = np.exp(-t * np.pi * 2.0 * lb)
-    
     # Build target shape: place the 1D window along spec_axis, size 1 for others
     target_shape = [1] * len(rawdata.shape)
     target_shape[spec_axis] = rawdata.shape[spec_axis]
-    
     # Reshape 1D window for broadcasting
     apod_window = apod_window_1d.reshape(target_shape)
-    
     # Apply filter
     filtered_data = rawdata * apod_window
-    
+
     return filtered_data
 
 
@@ -64,26 +74,47 @@ def create_hamming_window_for_axis(size, ndim, axis):
 
 
 def remove_bruker_filterartifacts(fids):
+    """
+    Removes artifacts from Bruker data by discarding the first 76 points and zero-padding the end.
 
-    '''in our bruker system when we scan the first 76 points are not correct and have to be discarded.'''
+    Parameters:
+    - fids (numpy.ndarray): Input FID (Free Induction Decay) data.
 
+    Returns:
+    - numpy.ndarray: FID data with the first 76 points removed and zero-padded at the end.
+    """
     filter_points= 76
     fids = np.roll(fids, -filter_points, axis=0)
     fids[-filter_points:] = 0
     return fids
 def raw_to_complex(fid):
-    '''
-    parameters: 
-        -fid: the free induction decays as a collection of floats from the rawdatafile (fid_proc.64)
+    """
+    Converts raw FID data into complex values by interleaving real and imaginary parts.
 
-    
-    Notes: Takes the raw fid and converts them into real and imaginary values by indexing. 
-    the raw data is interleaved of real and imaginary'''
+    Parameters:
+    - fid (numpy.ndarray): Raw FID data as a collection of floats (interleaved real and imaginary).
+
+    Returns:
+    - numpy.ndarray: Complex-valued FID data.
+
+    Notes:
+    - The raw data is assumed to be interleaved as [real0, imag0, real1, imag1, ...].
+    """
     complex_data = fid[::2] + 1j* fid[1::2]
     return complex_data
 
 def spatial_axes(header):
-    # Spatial axes
+    """
+    Computes spatial axes (x, y, z) and the ppm axis from Bruker header information.
+
+    Parameters:
+    - header (dict): Bruker header containing encoding matrix and field of view.
+
+    Returns:
+    - tuple: (spatial_axes, ppm_axis)
+      - spatial_axes (dict): Dictionary with keys 'x', 'y', 'z' containing the spatial axis arrays.
+      - ppm_axis (numpy.ndarray): PPM (parts per million) axis for spectral data.
+    """
     enc = header['PVM_EncMatrix']
     fov = header['PVM_Fov']
     
@@ -97,8 +128,17 @@ def spatial_axes(header):
 
 def find_spectral_axis(cdata, spec_size=2048):
     """
-    Finds the spectral axis dynamically. 
-    Defaults to looking for 2048, but falls back to the largest dimension.
+    Dynamically finds the spectral axis in a multi-dimensional array.
+
+    Parameters:
+    - cdata (numpy.ndarray): Input data array.
+    - spec_size (int, optional): Expected size of the spectral axis. Defaults to 2048.
+
+    Returns:
+    - int: Index of the spectral axis.
+
+    Notes:
+    - If `spec_size` is not found, the largest dimension is assumed to be the spectral axis.
     """
     if spec_size in cdata.shape:
         return cdata.shape.index(spec_size)
@@ -108,8 +148,17 @@ def find_spectral_axis(cdata, spec_size=2048):
 
 def find_spatial_axis(cdata):
     """
-    Finds spatial axes dynamically by grabbing all axes except the spectral one.
-    This works for (9,9,9), (12,10,10), or any other shape.
+    Dynamically finds the spatial axes in a multi-dimensional array by excluding the spectral axis.
+
+    Parameters:
+    - cdata (numpy.ndarray): Input data array.
+
+    Returns:
+    - tuple: Indices of the spatial axes.
+
+    Notes:
+    - The spectral axis is identified using `find_spectral_axis`.
+    - All other axes are considered spatial.
     """
     spec_axis = find_spectral_axis(cdata)
     
@@ -120,25 +169,45 @@ def find_spatial_axis(cdata):
 
 
 def fourierpipeline(cdata):
+    """
+    Applies a Fourier transform pipeline to multi-dimensional data.
+
+    Parameters:
+    - cdata (numpy.ndarray): Input data array (e.g., k-space or FID data).
+
+    Returns:
+    - numpy.ndarray: Fourier-transformed data with spectral and spatial FFTs applied.
+
+    Notes:
+    - Spectral FFT is applied along the spectral axis.
+    - Spatial FFT is applied along all spatial axes.
+    - Both transforms include a shift to center the zero frequency.
+    """
     
     ax_spec = processing.find_spectral_axis(cdata)
     ax_spat = processing.find_spatial_axis(cdata)
     
     ax_spat = tuple(sorted(ax_spat))
 
-    # Spectral FFT
-
     spectra = np.fft.fft(cdata, axis=ax_spec)
     spectra = np.fft.fftshift(spectra, axes=ax_spec)
     
-    # Spatial FFT (FFT on spatial axes works best)
     spectra = np.fft.fftshift(np.fft.fftn(spectra, axes=ax_spat), axes=ax_spat)
     return spectra
 
 
 
 def read_fid_proc64file(study_directory,scan_no):
-    '''For csi scans from Clemens and NSPECTS u have to load the fid_proc.64 file'''
+    """
+    Reads a Bruker FID file (fid_proc.64) for CSI scans.
+
+    Parameters:
+    - study_directory (str): Path to the Bruker study directory.
+    - scan_no (int): Scan number.
+
+    Returns:
+    - numpy.ndarray: Raw FID data as a 1D array of floats.
+    """
 
     fid_ls = []
     fid_file = os.path.join(study_directory, str(scan_no), 'pdata', '1', 'fid_proc.64')
@@ -150,7 +219,7 @@ def read_fid_proc64file(study_directory,scan_no):
     return fid_ls[0]
 
 
-#giorgi
+
 def signaltonoise(ppm, spects_X, signal_i, signal_f, boolean=1, noise_i=None, noise_f=None):
     """
     Computes the signal-to-noise ratio (SNR) for specified spectral regions.
@@ -195,20 +264,33 @@ def signaltonoise(ppm, spects_X, signal_i, signal_f, boolean=1, noise_i=None, no
 
 
 def date_of_scan(header):
-    from datetime import datetime
+    """
+    Extracts the date and time of the scan from the Bruker header.
 
+    Parameters:
+    - header (dict): Bruker header containing acquisition time.
+
+    Returns:
+    - datetime.datetime: The date and time of the scan.
+    """
     part = header['ACQ_abs_time']
-
     timefrom1970,_,_= part.strip("()").split(",")
-
     dt_object = datetime.fromtimestamp(int(timefrom1970))
-    #print(dt_object)
+
     return dt_object
 
 def scanduration(header):
-    #print(header['PVM_ScanTime'])
-    scantime_ms = header['PVM_ScanTime']
+    """
+    Computes the duration of the scan in minutes and seconds.
 
+    Parameters:
+    - header (dict): Bruker header containing scan time.
+
+    Returns:
+    - tuple: (minutes, seconds) as integers.
+    """
+
+    scantime_ms = header['PVM_ScanTime']
     total_seconds = scantime_ms / 1000
 
     # 2. Calculate minutes and remaining seconds
@@ -217,20 +299,23 @@ def scanduration(header):
 
 
 def check_spectras(spectras,ppm_axis):
-    #spectras is a list
+    """
+    Plots and displays all spectra in a list with annotated theoretical peaks.
+
+    Parameters:
+    - spectras (list): List of spectral data arrays.
+    - ppm_axis (numpy.ndarray): PPM axis for the spectra.
+
+    Notes:
+    - Each spectrum is shifted by 235 points for visualization.
+    - Theoretical peaks for Inorganic Phosphate, γ-ATP, α-ATP, and β-ATP are annotated.
+    """
 
     # PLOT AND SAVE ALL SPECTRA
     for key,value in enumerate(spectras[:]):
         spec = value
         spec = np.roll(spec,-235)
-        #plt.figure(figsize=(12, 6))
-        lpidx = key
-        passed_time = (key + 1) * 8
 
-        fig, ax = plt.subplots()
-        #timestamp_str = scantime[lpidx].strftime("%H:%M:%S")
-
-        colorpalette = sns.color_palette("viridis")
         sns.lineplot(x=ppm_axis[:], y=np.abs(spec).flatten())
         plt.xlabel("Chmical shift (ppm)")
         plt.axvline(5.02,label = 'Inorganic Phosphate (theoretical)', color = 'black', linestyle='--')
@@ -248,9 +333,6 @@ def check_spectras(spectras,ppm_axis):
         plt.show()
         #plt.savefig(f'./fig/leupoldspec/scan_no{key}')
         plt.close()
-
-
-
 
 def find_peak(spectra,x_coordinate,ppm_axis,tolerance = 2):
     """
@@ -291,8 +373,6 @@ def find_peak(spectra,x_coordinate,ppm_axis,tolerance = 2):
     peakidx_local = np.argmax(spectra[area])
     peakidx_global = indices_in_window[peakidx_local]
     peak_intensity = spectra[peakidx_global]
-
-
     return peakidx_global, peak_intensity
 
 def find_peak_debug(spectra, x_coordinate, ppm_axis, tolerance=2):
@@ -310,23 +390,6 @@ def find_peak_debug(spectra, x_coordinate, ppm_axis, tolerance=2):
     peakidx_local = np.argmax(spectra[area])
     peakidx_global = indices_in_window[peakidx_local]
     peak_intensity = spectra[peakidx_global]
-
-    # # --- DEBUG PLOTTING ---
-    # plt.figure(figsize=(10, 4))
-    # # Plot the full spectrum vs indices so we can't be confused by PPM units
-    # plt.plot(spectra, label='Full Spectrum (Indices)', color='gray', alpha=0.5)
-    
-    # # Highlight the search window
-    # plt.axvspan(indices_in_window[0], indices_in_window[-1], color='yellow', alpha=0.3, label='Search Window')
-    
-    # # Mark the found peak
-    # plt.axvline(peakidx_global, color='red', linestyle='--', label=f'Found Peak at Index {peakidx_global}')
-    # plt.scatter(peakidx_global, peak_intensity, color='red', zorder=5)
-    
-    # plt.title(f"Searching for {x_coordinate}ppm | Found at idx: {peakidx_global} | Val: {peak_intensity:.2f}")
-    # plt.legend()
-    # plt.show()
-    # # -----------------------
 
     return peakidx_global, peak_intensity
 
@@ -382,9 +445,6 @@ def verify_scan_tracking(spectra, ppm_axis, targets, tolerance=2, scan_idx=0, sa
 
 def peak_integral(spectra, ppm_axis, targets, tolerance=2,normalize_total = True):
 
-    #plt.figure(figsize=(14, 6))
-    #plt.plot(spectra, color='gray', alpha=0.3, label='Data')
-
     # 1. Define the search mask
     found_values = {}
     noise_floor = np.mean(spectra[1500:2000])
@@ -392,19 +452,13 @@ def peak_integral(spectra, ppm_axis, targets, tolerance=2,normalize_total = True
     for name, info in targets.items():
         # Define range
         target_ppm = info['ppm']
-        color = info['color']
 
         area = (ppm_axis < target_ppm + tolerance) & (ppm_axis > target_ppm - tolerance)
     
-        # 2. Extract the indices where 'area' is True
+        # 2. Extract the indices where 'area' is True, Subtract baseline noise
         indices_in_window = np.where(area)[0]
-
-        #plt.axvspan(indices_in_window[0], indices_in_window[-1], color='blue', alpha=0.15, label=f'inorganic phosphate')
-
         raw_sum = np.sum(spectra[indices_in_window])
         baseline_area = noise_floor * len(indices_in_window)
-        
-        # Max(0, ...) ensures we don't get negative areas from random noise
         found_values[name] = max(0, raw_sum - baseline_area)
 
     # --- 3. OPTIONAL: CONSTANT SUM NORMALIZATION ---
@@ -414,9 +468,7 @@ def peak_integral(spectra, ppm_axis, targets, tolerance=2,normalize_total = True
             for name in found_values:
                 found_values[name] = found_values[name] / total_sum
 
-
     return found_values
-
 
 
 def check_orientation(m, p_spectra=2048, p_dims=(12, 10, 10)):
