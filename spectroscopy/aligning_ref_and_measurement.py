@@ -7,12 +7,12 @@ import seaborn as sns
 
 '''This script can overlay two spectra of choice'''
 
-study_directory_org =  "./data/jojo_april"
+study_directory_org =  "./spectroscopy/data/jojo_april"
 file_utils.read_bruker_study(study_directory_org)
 fids_org, spect_org, ppm_axis, header = spectroscopy.read_NSPECT(study_directory_org,3) 
 
 
-study_directory_org =  "./data/leupold_feb"
+study_directory_org =  "./spectroscopy/data/leupold_feb"
 file_utils.read_bruker_study(study_directory_org)
 fids_org, spect_org, ppm_axis, header = spectroscopy.read_NSPECT(study_directory_org,13) 
 
@@ -27,7 +27,7 @@ spects_org = np.fft.fftshift(np.fft.fft(fid_org_filtered2, axis=0), axes=0)
 spects_org_flip = np.flip(spects_org, axis=-1)
 spects_org_shift2 = np.roll(spects_org_flip,-250)
 
-study_directory_reference =  "./data/reference/20260107_145049_MDC_0230_fm_organoids_260107_organoid_atp_spec2_1_15"
+study_directory_reference =  "./spectroscopy/data/reference/20260107_145049_MDC_0230_fm_organoids_260107_organoid_atp_spec2_1_15"
 file_utils.read_bruker_study(study_directory_reference)
 fids_ref, spect_ref, ppm_axis, header = spectroscopy.read_NSPECT(study_directory_reference,11) 
 
@@ -47,5 +47,5 @@ plt.ylabel('Normed Signal Intensity')
 plt.legend()
 plt.xlim(25,-25)
 plt.grid()
-plt.savefig('./fig/filtering')
+#plt.savefig('./fig/filtering')
 plt.show()

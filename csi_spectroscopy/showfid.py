@@ -12,8 +12,7 @@ import matplotlib.pyplot as plt
 
 '''This Script shows represntative FIDs'''
 
-
-study_directory = "/Users/neo/Documents/ComputerEngMs/MDCMaster/Masterthesis_Code/data/MDC_0230_fm_organoids_MDC_0230_fm_organoids_334710_1_Default_251202_organoid_water_368290_360.3.6/20251202_104612_MDC_0230_fm_organoids_251202_organoid_water_1_3"
+study_directory = "./csi_data/MDC_0230_fm_organoids_MDC_0230_fm_organoids_334710_1_Default_251202_organoid_water_368290_360.3.6/20251202_104612_MDC_0230_fm_organoids_251202_organoid_water_1_3"
 scan_no = 16
 file_utils.read_bruker_study(study_directory)
 

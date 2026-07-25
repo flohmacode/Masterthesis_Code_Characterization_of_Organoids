@@ -1,5 +1,3 @@
-#!/mnt/c/Users/fmarqua/Documents/datascripts/testvenv/bin/python
-
 import sys
 print(sys.executable)
 

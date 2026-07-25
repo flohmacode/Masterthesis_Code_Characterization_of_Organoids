@@ -9,9 +9,9 @@ import seaborn as sns
 
 plt.close('all')
 name_bimsb = "leupold_dec"
-spectras = np.load(f"./spectrscopy/processed_data/{name_bimsb}/spectra.npy")
-scantime = np.load(f"./spectrscopy/processed_data/{name_bimsb}/scantime.npy",allow_pickle=True)
-ppm_axis = np.load(f"./spectrscopy/processed_data/{name_bimsb}/ppm_axis.npy")
+spectras = np.load(f"./spectroscopy/processed_data/{name_bimsb}/spectra.npy")
+scantime = np.load(f"./spectroscopy/processed_data/{name_bimsb}/scantime.npy",allow_pickle=True)
+ppm_axis = np.load(f"./spectroscopy/processed_data/{name_bimsb}/ppm_axis.npy")
 spectras = spectras.squeeze()
 spectras = np.flip(spectras, axis=-1)
 spectras = np.roll(spectras,235)

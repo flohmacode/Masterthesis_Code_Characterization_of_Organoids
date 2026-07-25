@@ -1,11 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import src.connection_to_bio as ctb
 import src.helper as helper
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, WhiteKernel
 
-import modeling.src.organoid_sim_linear as mosl
+import src.organoid_sim_linear as mosl
 
 # Simulation Params
 dt = 1 # min
