@@ -19,8 +19,8 @@ time_sim_2d = time_sim_1d[:, None]
 name = 'jojo_april'
 
 # 1. Load the numpy arrays
-accepted_parameters_jojo_arr = np.load('./parameters/jojo_april_linear_accepted_parameter_combined.npy', allow_pickle=True)
-best_parameters_jojo_arr = np.load('./parameters/jojo_april_linear_best_parameter_combined.npy', allow_pickle=True)
+accepted_parameters_jojo_arr = np.load('./modeling/parameters/jojo_april_linear_accepted_parameter_combined.npy', allow_pickle=True)
+best_parameters_jojo_arr = np.load('./modeling/parameters/jojo_april_linear_best_parameter_combined.npy', allow_pickle=True)
 
 
 # 2. Convert them back to Dict and List of Dicts
@@ -29,8 +29,8 @@ accepted_parameters_jojo = accepted_parameters_jojo_arr.tolist()  # Becomes a li
 
 name = 'leupold_feb'
 
-accepted_parameters_leupold_arr = np.load('./parameters/leupold_feb_linear_accepted_parameter_combined.npy', allow_pickle=True)
-best_parameters_leupold_arr = np.load('./parameters/leupold_feb_linear_best_parameter_combined.npy', allow_pickle=True)
+accepted_parameters_leupold_arr = np.load('./modeling/parameters/leupold_feb_linear_accepted_parameter_combined.npy', allow_pickle=True)
+best_parameters_leupold_arr = np.load('./modeling/parameters/leupold_feb_linear_best_parameter_combined.npy', allow_pickle=True)
 
 best_parameters_leupold = best_parameters_leupold_arr.item()     # Becomes a dict
 accepted_parameters_leupold = accepted_parameters_leupold_arr.tolist() # Becomes a list of dicts
@@ -119,9 +119,9 @@ my_colors = {
     "2. Experiment": "#F8720C"   # Burnt Orange
 }
 
-# =====================================================================
+
 # Top Left: Experiment 2 model + GP discrepancy vs Leupold data
-# =====================================================================
+
 ax = axes[0, 0]
 ax.plot(time_sim_1d, atp_model_leupold, 'r--', alpha=0.6, label='Mechanistic Model 2. Experiment')
 ax.scatter(time_exp_leupold, normed_datapoints_leupold, color='black', zorder=5, s=30, label='Data (Exp 2)')
@@ -138,9 +138,9 @@ ax.set_ylim(bottom=-0.5,top = 1.5)
 ax.legend(fontsize=8)
 ax.grid(True, linestyle=':', alpha=0.5)
 
-# =====================================================================
+
 # Top Right: Experiment 3 model + GP discrepancy vs Jojo data
-# =====================================================================
+
 ax = axes[0, 1]
 ax.plot(time_sim_1d, atp_model_jojo, 'b--', alpha=0.6, label='Mechanistic Model 3.Experiment')
 ax.scatter(time_exp_jojo, normed_datapoints_jojo, color='black', zorder=5, s=30, label='Data 3.Exp')
@@ -192,9 +192,8 @@ ax.grid(True, linestyle=':', alpha=0.5)
 
 plt.show()
 
-# ======================================================================
-# Bottom Left: Raw residuals + GP mean overlaid — shows what GP learned
-# ======================================================================
+# Raw residuals + GP mean overlaid 
+
 
 fig, ax = plt.subplots(figsize=(10, 5))
 
@@ -225,8 +224,6 @@ ax.legend(fontsize=8)
 ax.grid(True, linestyle=':', alpha=0.5)
 plt.show()
 
-
-
 fig, ax = plt.subplots(figsize=(10, 5))
 
 ax.scatter(time_exp_leupold, res_ip_leupold_at_obs, color=my_colors['2. Experiment'], s=30, zorder=5, label='Residuals 2.Experiment')
@@ -255,8 +252,6 @@ ax.set_xlim(0, 300)
 ax.legend(fontsize=8)
 ax.grid(True, linestyle=':', alpha=0.5)
 plt.show()
-
-
 
 print("\n=== GP HYPERPARAMETERS FOR THESIS METHOD SECTION ===")
 

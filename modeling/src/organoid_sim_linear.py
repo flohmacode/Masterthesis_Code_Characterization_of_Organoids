@@ -61,12 +61,9 @@ def organoid_sim_spec_params_linear(steps,dt,Volume_L,params):
     OXY = np.zeros(steps);  OXY[0] = OXY_0 # mM
     ATP_p = np.zeros(steps); ATP_p[0] = 0.9
 
-    # volume_organoid =  4/3 * np.pi* (3/2)**3 *1e-9 # mm³ → m³
-    # number_of_organoids = 18
-
     X = np.zeros(steps);   X[0] = ORGANOID_VOLUME # Biomass (Cell Viability)
 
-    Volume_L =Volume_L# Volume of the Experimental Setup
+    Volume_L =Volume_L # Volume of the Experimental Setup
 
     # we multiply the baserates by 60 to convert into minutes
     # we scale them by the amount of volume since in the simulation the should represent the effect on the concentration 
@@ -85,23 +82,21 @@ def organoid_sim_spec_params_linear(steps,dt,Volume_L,params):
 
     #random_constants
     yield_aerobic = yield_aerobic
-
     myu_fixed_cost = myu_fixed_costs
-    #myu_activity_cost = myu_activity_costs
 
     def inhibition(w, Ki=k_m_i):
         return (w) / (Ki + w)
 
     for t in range(1, steps):
-        # STEP A: Normalization (0.0 to 1.0 scale)
 
-        M_ratio = M[t-1] / (Km_m_bio+ M[t-1])       #Michealis- Menten Curve
+
+        M_ratio = M[t-1] / (Km_m_bio+ M[t-1])     #Michealis- Menten Curve
         OXY_ratio = OXY[t-1] / (Km_o_bio+OXY[t-1])
 
         aerobic = M_ratio * OXY_ratio * (1-inhibition(W[t-1],k_m_i)) * (1-inhibition(ATP_p[t-1],k_m_a))
 
         prod = (aerobic * yield_aerobic) 
-        cost = (myu_fixed_cost) #+ myu_activity_cost * W[t-1])
+        cost = (myu_fixed_cost) 
 
         dATP_p =  prod-cost
         

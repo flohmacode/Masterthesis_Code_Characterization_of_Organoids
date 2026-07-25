@@ -22,8 +22,8 @@ def load_to_dataframe(npy_path):
 
 # 1. Define path setups
 
-jojo_path = f"./parameters/jojo_april_linear_accepted_parameter_numbers.npy"
-leupold_path = f"./parameters/leupold_feb_linear_accepted_parameter_numbers.npy"
+jojo_path = f"./modeling/parameters/jojo_april_linear_accepted_parameter_numbers.npy"
+leupold_path = f"./modeling/parameters/leupold_feb_linear_accepted_parameter_numbers.npy"
 
 # 2. Load data into DataFrames
 df_jojo = load_to_dataframe(jojo_path)
