@@ -440,90 +440,6 @@ def plot_csi_heatmap_sagital(spects, idxtoslice, spatial):
     
     return fig,ax
 
-def compute_alignment(fov_spec, fov_img, offset_y, offset_x=0):
-    """
-    Calculates GridSpec boundaries (0 to 1) for a CSI grid.
-    
-    Args:
-        fov_spec: Spectral FOV (e.g., [[40.], [40.]])
-        fov_img: Image FOV (e.g., [[25.], [25.], [72.]])
-        offset_y: The physical shift in mm (e.g., 2.89)
-        offset_x: Physical shift in x (default 0)
-    """
-    # 1. Flatten the inputs to get simple floats
-    f_spec_x = float(np.array(fov_spec).flatten()[0])
-    f_spec_y = float(np.array(fov_spec).flatten()[1])
-    
-    f_img_x = float(np.array(fov_img).flatten()[0])
-    f_img_y = float(np.array(fov_img).flatten()[1])
-
-    # 2. Calculate the size of the CSI grid relative to the image
-    # (e.g., if CSI is 40mm and Image is 25mm, this will be 1.6)
-    width_ratio = f_spec_x / f_img_x
-    height_ratio = f_spec_y / f_img_y
-
-    # 3. Calculate the center position in normalized coordinates
-    # 0.5 is the center of the image. 
-    # We add (offset / total_fov) to shift that center.
-    center_x = 0.5 + (offset_x / f_img_x)
-    center_y = 0.5 + (offset_y / f_img_y)
-
-    # 4. Calculate final GridSpec boundaries
-    left = center_x - (width_ratio / 2)
-    right = center_x + (width_ratio / 2)
-    bottom = center_y - (height_ratio / 2)
-    top = center_y + (height_ratio / 2)
-
-    return left, right, bottom, top
-
-def compute_alignment_3d(fov_spec_3d, fov_img_2d, offsets_3d, view='axial'):
-    """
-    fov_spec_3d: [[25.], [25.], [72.]] -> Physical X, Y, Z
-    fov_img_2d:  [40, 40]              -> The 2D dimensions of the active slice
-    offsets_3d:  [off_x, off_y, off_z] -> Physical shifts in mm
-    """
-    # 1. Flatten inputs to simple 1D arrays
-    fs = np.array(fov_spec_3d).flatten() # Should be [25, 25, 72]
-    fi = np.array(fov_img_2d).flatten()   # Should be [40, 40]
-    off = np.array(offsets_3d).flatten() # Should be [x, y, z]
-
-    # 2. Map physical CSI axes (0=X, 1=Y, 2=Z) to 2D Plot axes
-    # The image FOV [40, 40] is always [Horizontal, Vertical] on screen
-    if view.lower() == 'axial':
-        spec_h_idx, spec_v_idx = 0, 1  # CSI Width=X, CSI Height=Y
-    elif view.lower() == 'coronal':
-        spec_h_idx, spec_v_idx = 0, 2  # CSI Width=X, CSI Height=Z
-    elif view.lower() == 'sagittal':
-        spec_h_idx, spec_v_idx = 1, 2  # CSI Width=Y, CSI Height=Z
-    else:
-        raise ValueError("View must be 'axial', 'coronal', or 'sagittal'")
-
-    # 3. Extract the physical sizes for the current view
-    f_spec_h = fs[spec_h_idx]
-    f_spec_v = fs[spec_v_idx]
-    
-    f_img_h = fi[0] # Image Width (usually 40)
-    f_img_v = fi[1] # Image Height (usually 40)
-    
-    off_h = off[spec_h_idx]
-    off_v = off[spec_v_idx]
-
-    # 4. Calculate Ratios and Normalized Centers
-    width_ratio = f_spec_h / f_img_h
-    height_ratio = f_spec_v / f_img_v
-
-    # 0.5 is the center of the 40x40 image
-    center_h = 0.5 + (off_h / f_img_h)
-    center_v = 0.5 + (off_v / f_img_v)
-
-    # 5. Calculate GridSpec boundaries (0 to 1)
-    left = center_h - (width_ratio / 2)
-    right = center_h + (width_ratio / 2)
-    bottom = center_v - (height_ratio / 2)
-    top = center_v + (height_ratio / 2)
-
-    return left, right, bottom, top
-
 def compute_alignment2(fov_spec, fov_img, offset_y, offset_x, nx, ny):
     """
     Calculates GridSpec boundaries with a half-voxel correction.
@@ -637,7 +553,6 @@ def csi_overlay_axial(spects, img_array,idxtoslice, spatial,  fov_img ,fov_spec 
     pos = ax_main.get_position()
     img_h, img_w = img_array.shape[0], img_array.shape[1]
 
-    #l_local, r_local, b_local, t_local = compute_alignment(fov_spec, fov_img, offset)
 
     l_local, r_local, b_local, t_local = compute_alignment2(
         fov_spec, 
@@ -755,7 +670,7 @@ def csi_overlay_coronal(spects, img_array, idxtoslice, spatial, fov_img, fov_spe
 
     Notes
     -----
-    - Alignment is computed using `compute_alignment_3d` and applied via
+    - Alignment is computed using `compute_alignment2` and applied via
       Matplotlib `GridSpec`.
     - Spectra are plotted as magnitude spectra with a fixed spectral shift.
     - All spectra are scaled to a shared y-axis limit determined from the
@@ -775,7 +690,6 @@ def csi_overlay_coronal(spects, img_array, idxtoslice, spatial, fov_img, fov_spe
     pos = ax_main.get_position()
     
     # Calculate alignment
-    #l_local, r_local, b_local, t_local = compute_alignment2(fov_spec, fov_img, offset)
     l_local, r_local, b_local, t_local = compute_alignment2(
     fov_spec, 
     fov_img, 
