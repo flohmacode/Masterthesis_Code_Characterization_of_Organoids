@@ -8,7 +8,7 @@ import seaborn as sns
 """This Script analyses the timeseries of the recorded Experiments"""
 
 plt.close('all')
-name_bimsb = "leupold_dec"
+name_bimsb = "jojo_april" 
 spectras = np.load(f"./spectroscopy/processed_data/{name_bimsb}/spectra.npy")
 scantime = np.load(f"./spectroscopy/processed_data/{name_bimsb}/scantime.npy",allow_pickle=True)
 ppm_axis = np.load(f"./spectroscopy/processed_data/{name_bimsb}/ppm_axis.npy")
@@ -126,7 +126,7 @@ ax.legend(by_label.values(), by_label.keys(),
 
 plt.setp(ax.xaxis.get_majorticklabels(), rotation=45, ha='right')
 plt.tight_layout()
-plt.savefig(f'./fig/spectra_overtime/{name_bimsb}')
+#plt.savefig(f'./fig/spectra_overtime/{name_bimsb}')
 
 # Save individual metabolite intensities as .npy files
 
@@ -145,9 +145,14 @@ print("Saved intensity .npy files.")
 metabolite_names = list(metabolites.keys())
 binned_data = df_final_filtered.groupby('bin')[metabolite_names].mean()
 
+if name_bimsb == "leupold_feb":
+    end_index = -2  # Use the second-to-last bin because this experiment is longer
+else:
+    end_index = -1  # Use the last bin for "leupold_dec", "jojo_april", etc.
+
 # 2. Extract the first and last bins
 first_bin_means = binned_data.iloc[0]
-last_bin_means = binned_data.iloc[-1]
+last_bin_means = binned_data.iloc[end_index]
 
 print("\n--- Quantification based on plotted binned means (First Bin vs Last Bin) ---")
 print(f"{'Metabolite':<20} | {'First Bin Avg':<15} | {'Last Bin Avg':<15} | {'Reduction %':<12}")
@@ -156,6 +161,8 @@ print("-" * 75)
 for met in metabolites:
     start_val = first_bin_means[met]
     end_val = last_bin_means[met]
+
+
     # Calculate percentage reduction (how much it decreased relative to the start)
     reduction = ((start_val - end_val) / start_val) * 100
     

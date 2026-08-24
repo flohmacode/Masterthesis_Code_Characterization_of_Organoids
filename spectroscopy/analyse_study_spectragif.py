@@ -10,7 +10,7 @@ import seaborn as sns
 '''This script allows the Conversion from raw data files to Spectras'''
 
 #LOAD ALL DATA - specify file here
-name_bimsb = 'leupold_dec'
+name_bimsb = 'jojo_april'
 study_directory =  f"./spectroscopy/data/{name_bimsb}"
 
 file_utils.read_bruker_study(study_directory)
@@ -85,7 +85,7 @@ for key,value in enumerate(specls_arr[:]):
 
     colorpalette = sns.color_palette("viridis")
     sns.lineplot(x=ppm_axis[:], y=np.abs(spec[:, :]).flatten())
-    plt.xlabel("Chmical shift (ppm)")
+    plt.xlabel("Chemical shift (ppm)")
     plt.axvline(5.02,label = 'Inorganic Phosphate: +5.02ppm', color = 'black', linestyle='--')
     plt.axvline(x=-2.48, color='red', linestyle='--', label='γ-ATP: -2.48ppm')
     plt.axvline(x=-7.52, color='green', linestyle='--', label='α-ATP: -7.52ppm')
@@ -97,9 +97,9 @@ for key,value in enumerate(specls_arr[:]):
     plt.title(f'31P Spectrum of 20 Organoids: Scan No. {key}')
     plt.grid()
     plt.tight_layout()
-    plt.show()
-    #plt.savefig(f'./spectroscopy/fig/{name_bimsb}/scan_no{key}')
-    plt.close()
+    #plt.show()
+    plt.savefig(f'./spectroscopy/fig/{name_bimsb}/scan_no{key}')
+    #plt.close()
 
 #Save the Spectra into a .npy array for further processing
 # np.save(f"./spectroscopy/processed_data/{name_bimsb}/spectra.npy",specls_arr)

@@ -37,7 +37,7 @@ plt.ylabel('Sample Amplitude (unitless)')
 plt.show()
 
 plt.plot(rawdata[2502500:2503500:2])
-plt.title('Representative FID')
+plt.title('Representative Free Induction Decay')
 plt.xlabel('Sample Index')
 plt.ylabel('Sample Amplitude (unitless)')
 plt.show()
